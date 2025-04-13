@@ -190,13 +190,12 @@ impl OSInformation {
 ///```
 ///use os_type;
 ///let os = os_type::current_platform();
-///println!("Type: {:?}", os.os_type);
+///println!("Type: {}", os.os_type);
 ///println!("Version: {}", os.version);
 ///```
 pub fn current_platform() -> OSInformation {
     None
         // Windows
-        .or_else(Uname::try_information)
         .or_else(WindowsRegistry::try_information)
         // macOS
         .or_else(NSOperatingSystem::try_information)
@@ -204,5 +203,7 @@ pub fn current_platform() -> OSInformation {
         .or_else(OsRelease::try_information)
         .or_else(RhelRelease::try_information)
         .or_else(LsbRelease::try_information)
+        // Cygwin
+        .or_else(Uname::try_information)
         .unwrap_or_default()
 }

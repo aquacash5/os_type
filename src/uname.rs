@@ -16,6 +16,7 @@ impl TryInformation for Uname {
             let distro = r.distro.unwrap_or("".to_string()).to_lowercase();
             match distro.as_str() {
                 "cygwin" => Some(OSInformation::new(OSType::Cygwin, version)),
+                "linux" => Some(OSInformation::new(OSType::GenericLinux, version)),
                 _ => None,
             }
         })
@@ -31,11 +32,13 @@ fn retrieve() -> Option<String> {
 }
 
 fn parse<S: AsRef<str>>(file: S) -> Uname {
+    let trimmed_file = file.as_ref().trim();
+
     let distrib_regex = Regex::new(r"(\w+)$").unwrap();
     let version_regex = Regex::new(r"^([\w\.]+)").unwrap();
 
-    let distro = get_first_capture(&distrib_regex, &file);
-    let version = get_first_capture(&version_regex, &file);
+    let distro = get_first_capture(&distrib_regex, trimmed_file);
+    let version = get_first_capture(&version_regex, trimmed_file);
 
     Uname { distro, version }
 }
@@ -53,6 +56,19 @@ mod test {
             Uname {
                 distro: Some("Cygwin".to_string()),
                 version: Some("3.4.8".to_string()),
+            }
+        );
+    }
+
+    #[test]
+    fn fedora_linux_6_13_9() {
+        let sample = r#"6.13.9-200.fc41.x86_64 GNU/Linux"#;
+
+        assert_eq!(
+            parse(sample),
+            Uname {
+                distro: Some("Linux".to_string()),
+                version: Some("6.13.9".to_string()),
             }
         );
     }
